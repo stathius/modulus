@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-checkpoint: 025874
+checkpoint: "025874"
 dataset_name: intraining_cyclones
 
 hydra:
