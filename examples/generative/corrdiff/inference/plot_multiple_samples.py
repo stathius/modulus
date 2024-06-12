@@ -20,21 +20,18 @@ import matplotlib.pyplot as plt
 import xarray
 
 
-def main(netcdf_file, output_dir, n_samples):
+def plot_samples(netcdf_file, output_dir, n_samples):
     """Plot multiple samples"""
-    path = netcdf_file
-    output = output_dir
-
-    root = xarray.open_dataset(path)
+    root = xarray.open_dataset(netcdf_file)
     ds = (
-        xarray.open_dataset(path, group="prediction")
+        xarray.open_dataset(netcdf_file, group="prediction")
         .merge(root)
         .set_coords(["lat", "lon"])
     )
     truth = (
-        xarray.open_dataset(path, group="truth").merge(root).set_coords(["lat", "lon"])
+        xarray.open_dataset(netcdf_file, group="truth").merge(root).set_coords(["lat", "lon"])
     )
-    ds
+    os.makedirs(output_dir, exist_ok=True)
 
     # concatenate truth data and ensemble mean as an "ensemble" member for easy
     # plotting
@@ -51,9 +48,9 @@ def main(netcdf_file, output_dir, n_samples):
     # plot the variables in parallel
     def plot(v):
         print(v)
-        # 2 is for the esemble and
+        # 2 is for the ensemble and
         merged[v][: n_samples + 2, :].plot(row="time", col="ensemble")
-        plt.savefig(f"{output}/{v}.png")
+        plt.savefig(f"{output_dir}/{v}.png")
 
     joblib.Parallel(n_jobs=8)(joblib.delayed(plot)(v) for v in merged)
 

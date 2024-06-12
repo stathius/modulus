@@ -48,12 +48,7 @@ import argparse
 import matplotlib.pyplot as plt
 from datetime import datetime
 import pandas as pd
-
-try:
-    import xskillscore
-except ImportError:
-    raise ImportError("xskillscore not installed. Try `pip install xskillscore`")
-
+import xskillscore
 
 def open_samples(f):
     """
@@ -76,7 +71,6 @@ def open_samples(f):
     truth = truth.set_coords(["lon", "lat"])
     pred = pred.set_coords(["lon", "lat"])
     return truth, pred, root
-
 
 def compute_and_save_metrics(netcdf_file, output_dir):
     truth, pred, root = open_samples(netcdf_file)
@@ -105,7 +99,7 @@ def compute_and_save_metrics(netcdf_file, output_dir):
         metrics.to_netcdf(os.path.join(output_dir, 'scores.nc'), mode="w")
 
 
-def save_metrics_to_txt(netcdf_file, output_dir):
+def write_metrics_to_txt(netcdf_file, output_dir):
     """Read and save metrics from a NetCDF file to a text file, CSV file, and XLS file in transposed table format."""
     ds = xr.open_dataset(netcdf_file)
     
@@ -141,7 +135,6 @@ def save_metrics_to_txt(netcdf_file, output_dir):
             f.write(row + "\n")
     
     df.to_csv(os.path.join(output_dir, 'metrics.csv'), float_format='%.3f')
-    
     df.to_excel(os.path.join(output_dir, 'metrics.xls'), float_format='%.3f')
 
 
@@ -149,10 +142,8 @@ if __name__ == "__main__":
     # Create the parser
     parser = argparse.ArgumentParser()
     # Add the positional arguments
-    
     parser.add_argument("--netcdf_file", help="Path to the NetCDF file")
     parser.add_argument("--output_dir", help="Path to the output directory")
-    parser.add_argument("--save_metrics", action="store_true", help="Save metrics to human readable text file")
     args = parser.parse_args()
     compute_and_save_metrics(args.netcdf_file, args.output_dir)
-    save_metrics_to_txt(os.path.join(args.output_dir, 'scores.nc'), args.output_dir)
+    write_metrics_to_txt(os.path.join(args.output_dir, 'scores.nc'), args.output_dir)

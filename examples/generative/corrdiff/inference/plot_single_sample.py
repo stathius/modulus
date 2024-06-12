@@ -92,7 +92,6 @@ def get_clim(output_channels, f):
 def main(file, output_dir, sample):
     """Plot single sample"""
     os.makedirs(output_dir, exist_ok=True)
-
     f = nc.Dataset(file, "r")
 
     # for c in f.time:
