@@ -41,7 +41,7 @@ num_steps: 18
   # Number of sampling steps
 sample_res: "full"
   # Sampling resolution
-regression_only: true
+regression_only: false
   # regression only inference
 diffusion_only: false
   # diffusion only inference
@@ -62,7 +62,7 @@ use_torch_compile: True
 hr_mean_conditioning: True
   # High-res mean (regression's output) as additional condition
 
-## Data options
+## Data options 
 patch_shape_x: 448
 patch_shape_y: 448
 overlap_pix: 0 

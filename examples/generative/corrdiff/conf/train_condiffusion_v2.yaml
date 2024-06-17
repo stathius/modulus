@@ -17,7 +17,7 @@
 hydra:
   job:
     chdir: True
-    name: condiffusion_v2_stathi
+    name: condiffusion_v2_stathi_p_mean_0
   run:
     dir: outputs
 
