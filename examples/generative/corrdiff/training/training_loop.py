@@ -78,7 +78,7 @@ def training_loop(
     wandb_project="Modulus-Generative",
     wandb_entity="CorrDiff-DDP-Group",
     wandb_name="CorrDiff",
-    wandb_group='CorrDiff-Group',
+    wandb_group="CorrDiff-Group",
     fp_optimizations="fp32",  # The floating point optimization mode
     regression_checkpoint_path=None,
     hr_mean_conditioning=False,
@@ -156,7 +156,7 @@ def training_loop(
     # Construct network.
     logger0.info("Constructing network...")
     interface_kwargs = dict(
-        img_resolution=img_shape_x,
+        img_resolution=[img_shape_y, img_shape_x],
         img_channels=img_out_channels,
         img_in_channels=img_in_channels,
         img_out_channels=img_out_channels,

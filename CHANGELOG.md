@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support for history, cos zenith, and downscaling/upscaling in the ERA5 HDF5 dataloader.
 - An example showing how to train a "tensor-parallel" version of GraphCast on a
 Shallow-Water-Equation example.
+- 3D UNet
 
 ### Changed
 
@@ -40,6 +41,7 @@ Shallow-Water-Equation example.
 - Added arg `checkpoint_level` to `SongUNetPosEmbd` class constructor.
 - Fixed bug in the partitioning logic for distributing graph structures
 intended for distributed message-passing.
+- Fixed bugs for corrdiff diffusion training of `EDMv1` and `EDMv2`
 
 ### Security
 
