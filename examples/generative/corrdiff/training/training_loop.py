@@ -169,7 +169,7 @@ def training_loop(
 
     # Setup optimizer.
     logger0.info("Setting up optimizer...")
-    if task == "diffusion":
+    if (task == "diffusion") and ('EDMPrecondSR' not in network_kwargs['class_name']):
         if regression_checkpoint_path is None:
             raise FileNotFoundError(
                 "Need to specify regression_checkpoint_path for training the diffusion model"
