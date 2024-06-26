@@ -157,7 +157,6 @@ def training_loop(
     logger0.info("Constructing network...")
     interface_kwargs = dict(
         img_resolution=[img_shape_y, img_shape_x],
-        img_channels=img_out_channels,
         img_in_channels=img_in_channels,
         img_out_channels=img_out_channels,
         label_dim=0,
