@@ -749,3 +749,60 @@ class VELoss_dfsr:
         loss = (e - output).square()
 
         return loss
+
+
+
+class SFMLoss:
+    def __init__(
+        self,
+        encoder_net,
+        sigma_min,
+        sigma_max,
+        # STATHI TODO: Pass distribution config
+        P_mean: float = 0.0,
+        P_std: float = 1.2,
+        sigma_data: float = 0.5,
+        era_conditioning: bool = False,
+    ):
+        args = locals()
+        for name, value in args.items():
+            if name != 'self':
+                setattr(self, name, value)
+
+    def __call__(self, net, img_clean, img_lr, labels=None, augment_pipe=None):
+        rnd_normal = torch.randn([img_clean.shape[0], 1, 1, 1], device=img_clean.device)
+        sigma = (rnd_normal * self.P_std + self.P_mean).exp()
+        sigma = torch.clamp(sigma + self.sigma_min, max=self.sigma_max)
+        weight = (sigma**2 + self.sigma_data**2) / (sigma * self.sigma_data) ** 2
+
+        # augment for conditional generaiton
+        img_tot = torch.cat((img_clean, img_lr), dim=1)
+        x_tot, augment_labels = (
+            augment_pipe(img_tot) if augment_pipe is not None else (img_tot, None)
+        )
+        x_1 = x_tot[:, : img_clean.shape[1], :, :] # x_1 - target
+        x_low = x_tot[:, img_clean.shape[1] :, :, :] # x_low - upsampled ERA5
+
+        # encode the low resolution data
+        x_0 = self.encoder_net(x_low) # x_0 - low resolution encoded
+
+        # convert sigma to time
+        # sigma = (1-t) sigma_max
+        # t = 1 - sigma/sigma_max
+        # form the interpolant
+        # we don't really need this
+
+        # if self.hr_mean_conditioning:
+        #     x_low = torch.cat((y_mean, x_low), dim=1).contiguous()
+
+        # we don't subtract x_0, this will be done in the sampler
+        x_t = x_1 - x_0 + torch.randn_like(x_0) * sigma
+        D_x = net(x_t, 
+                sigma, 
+                labels, 
+                condition = None,  
+                augment_labels=augment_labels,) 
+        # returns the denoised x_1_hat
+        loss = weight * ((D_x - (x_1 - x_0)) ** 2)
+
+        return loss
