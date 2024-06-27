@@ -26,6 +26,7 @@ import wandb as wb
 import numpy as np
 import psutil
 import torch
+from torch import nn
 
 from hydra.utils import to_absolute_path
 from torch.nn.parallel import DistributedDataParallel
@@ -89,6 +90,9 @@ def training_loop(
     lr_decay=0.8,
     valid_dump_ticks=5000,
     num_validation_evals=10,
+    sfm_encoder_type=None,
+    sfm_sigma_min=None,
+    sfm_sigma_max=None,
 ):
     """CorrDiff training loop"""
 
@@ -163,13 +167,15 @@ def training_loop(
         gridtype=gridtype,
         N_grid_channels=N_grid_channels,
     )  # weather
+    if task == 'sfm':
+        interface_kwargs.update({'img_in_channels': len(dataset.output_channels())})
     merged_args = {**network_kwargs, **interface_kwargs}
     net = construct_class_by_name(**merged_args)  # subclass of torch.nn.Module
     net.train().requires_grad_(True).to(device)
 
     # Setup optimizer.
     logger0.info("Setting up optimizer...")
-    if (task == "diffusion") and ('EDMPrecondSR' not in network_kwargs['class_name']):
+    if (task == "diffusion") and ("EDMLossSR" not in loss_kwargs["class_name"]):
         if regression_checkpoint_path is None:
             raise FileNotFoundError(
                 "Need to specify regression_checkpoint_path for training the diffusion model"
@@ -186,8 +192,41 @@ def training_loop(
             hr_mean_conditioning=hr_mean_conditioning,
         )
         logger0.success("Loaded the pre-trained regression network")
+    elif task == "sfm":
+        if (sfm_encoder_type == "1x1conv"):
+            encoder_net =  nn.Conv2d(
+                                    len(dataset.input_channels()), 
+                                    len(dataset.output_channels()), 
+                                    kernel_size=1
+                                )
+            # encoder_net = nn.Sequential(
+            #     nn.Conv2d(img_in_channels, img_out_channels, kernel_size=1),
+            #     nn.ReLU()
+            # )
+        elif (sfm_encoder_type == "unet"):
+            pass 
+            # TODO implement some Unet 
+            # model_type="DhariwalUNet", model_channels=192, channel_mult=[1, 2, 3, 4]
+        else:
+            raise ValueError(f"Unknown encoder type: {sfm_encoder_type}")
+
+        encoder_net.train().requires_grad_(True).to(device)
+        interface_kwargs = dict(
+            encoder_net = encoder_net,
+            # sigma_distribution =  c.sfm_sigma_distribution,
+            sigma_min = sfm_sigma_min,
+            # Minimum value of the noise sigma
+            sigma_max = sfm_sigma_min
+            # Maximum value of the noise sigma
+            # denoiser_type: x_prediction
+            # P_mean = 0.0,
+            # P_std = 1.2,
+            # sigma_data = 0.5,
+            # era_conditioning = era_conditioning,        
+        )
     else:
         interface_kwargs = {}
+
     loss_fn = construct_class_by_name(**loss_kwargs, **interface_kwargs)
     optimizer = construct_class_by_name(
         params=net.parameters(), **optimizer_kwargs

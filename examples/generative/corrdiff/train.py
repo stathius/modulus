@@ -38,6 +38,16 @@ from modulus.utils.generative import EasyDict, parse_int_list
 from training import training_loop
 from datasets.dataset import init_train_valid_datasets_from_config
 
+def get_nested_attr(conf, attr_path, default=None):
+    attributes = attr_path.split(".")
+    value = conf
+    for attr in attributes:
+        if hasattr(value, attr):
+            value = getattr(value, attr)
+        else:
+            return default
+    return value
+
 
 @hydra.main(version_base="1.2", config_path="conf", config_name="config_train_base")
 def main(cfg: DictConfig) -> None:
@@ -233,6 +243,9 @@ def main(cfg: DictConfig) -> None:
     elif precond == "resloss":
         c.network_kwargs.class_name = "modulus.models.diffusion.EDMPrecondSR"
         c.loss_kwargs.class_name = "modulus.metrics.diffusion.ResLoss"
+    elif precond == "sfmloss":
+        c.network_kwargs.class_name = "modulus.models.diffusion.EDMPrecondSRV2"
+        c.loss_kwargs.class_name = "modulus.metrics.diffusion.SFMLoss"
 
     # Network options.
     if cbase is not None:
@@ -255,6 +268,15 @@ def main(cfg: DictConfig) -> None:
         )
         c.network_kwargs.augment_dim = 9
     c.network_kwargs.update(dropout=dropout, use_fp16=fp16)
+
+    # Stochastic flow mathicng options
+    if precond == "sfmloss":
+        c.sfm_encoder_type = get_nested_attr(cfg, "sfm.encoder_type", "1x1conv")
+        # c.sfm_sigma_dist = get_nested_attr(cfg, "sfm.sigma_dist", "lognormal")
+        c.sfm_sigma_min = get_nested_attr(cfg, "sfm.sigma_min", 0.01)
+        c.sfm_sigma_max = get_nested_attr(cfg, "sfm.sigma_max", 1.0)
+        # c.sfm_denoiser_type = get_nested_attr(cfg, "sfm.denoiser_type", "x_prediction")
+        # c.sfm_era_conditioning = get_nested_attr(cfg, "sfm.era_conditioning", False)
 
     # Training options.
     c.total_kimg = max(int(duration * 1000), 1)
