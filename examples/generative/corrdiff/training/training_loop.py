@@ -216,7 +216,7 @@ def training_loop(
             # sigma_distribution =  c.sfm_sigma_distribution,
             sigma_min = sfm_sigma_min,
             # Minimum value of the noise sigma
-            sigma_max = sfm_sigma_min
+            sigma_max = sfm_sigma_max,
             # Maximum value of the noise sigma
             # denoiser_type: x_prediction
             # P_mean = 0.0,
