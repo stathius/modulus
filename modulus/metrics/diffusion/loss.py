@@ -770,11 +770,12 @@ class SFMLoss:
                 setattr(self, name, value)
 
     def __call__(self, net, img_clean, img_lr, labels=None, augment_pipe=None):
-        rnd_normal = torch.randn([img_clean.shape[0], 1, 1, 1], device=img_clean.device)
+        # rnd_normal = torch.randn([img_clean.shape[0], 1, 1, 1], device=img_clean.device)
         # sigma = (rnd_normal * self.P_std + self.P_mean).exp()
         # We clip sigma 
         #uniformly samples from 0 to 1 in torch
-        sigma = rnd_normal * (self.sigma_max - self.sigma_min) + self.sigma_min
+        rnd_uniform = torch.rand([img_clean.shape[0], 1, 1, 1], device=img_clean.device)
+        sigma = rnd_uniform * (self.sigma_max - self.sigma_min) + self.sigma_min
         # sigma = torch.clamp(sigma + self.sigma_min, max=self.sigma_max)
         weight = (sigma**2 + self.sigma_data**2) / (sigma * self.sigma_data) ** 2
 
@@ -802,5 +803,5 @@ class SFMLoss:
                 augment_labels=augment_labels,) 
         # returns the denoised x_1_hat
         loss = weight * ((D_x - x_0_tilde) ** 2)
-
+        
         return loss
