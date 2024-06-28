@@ -759,7 +759,7 @@ class SFMLoss:
         sigma_min,
         sigma_max,
         # STATHI TODO: Pass distribution config
-        P_mean: float = 0.0,
+        P_mean: float = -1.2,
         P_std: float = 1.2,
         sigma_data: float = 0.5,
         era_conditioning: bool = False,
@@ -771,8 +771,11 @@ class SFMLoss:
 
     def __call__(self, net, img_clean, img_lr, labels=None, augment_pipe=None):
         rnd_normal = torch.randn([img_clean.shape[0], 1, 1, 1], device=img_clean.device)
-        sigma = (rnd_normal * self.P_std + self.P_mean).exp()
-        sigma = torch.clamp(sigma + self.sigma_min, max=self.sigma_max)
+        # sigma = (rnd_normal * self.P_std + self.P_mean).exp()
+        # We clip sigma 
+        #uniformly samples from 0 to 1 in torch
+        sigma = rnd_normal * (self.sigma_max - self.sigma_min) + self.sigma_min
+        # sigma = torch.clamp(sigma + self.sigma_min, max=self.sigma_max)
         weight = (sigma**2 + self.sigma_data**2) / (sigma * self.sigma_data) ** 2
 
         # augment for conditional generaiton
@@ -787,22 +790,17 @@ class SFMLoss:
         x_0 = self.encoder_net(x_low) # x_0 - low resolution encoded
 
         # convert sigma to time
-        # sigma = (1-t) sigma_max
-        # t = 1 - sigma/sigma_max
-        # form the interpolant
-        # we don't really need this
-
-        # if self.hr_mean_conditioning:
-        #     x_low = torch.cat((y_mean, x_low), dim=1).contiguous()
+        t = 1 - sigma/self.sigma_max
 
         # we don't subtract x_0, this will be done in the sampler
-        x_t = x_1 - x_0 + torch.randn_like(x_0) * sigma
+        x_0_tilde = ((1-t) * x_0) + (t * x_1) 
+        x_t = x_0_tilde + torch.randn_like(x_0) * sigma
         D_x = net(x_t, 
                 sigma, 
                 labels, 
-                condition = None,  
+                condition = None,   
                 augment_labels=augment_labels,) 
         # returns the denoised x_1_hat
-        loss = weight * ((D_x - (x_1 - x_0)) ** 2)
+        loss = weight * ((D_x - x_0_tilde) ** 2)
 
         return loss
