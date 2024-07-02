@@ -184,7 +184,7 @@ def ablation_sampler(
 
         # Euler step.
         h = t_next - t_hat
-        denoised = net(x_hat / s(t_hat), x_lr, sigma(t_hat), class_labels).to(
+        denoised = net(x_hat / s(t_hat), sigma(t_hat), class_labels, x_lr).to(
             torch.float64
         )
         d_cur = (
