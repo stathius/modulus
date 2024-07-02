@@ -22,7 +22,7 @@ hydra:
     dir: outputs
 
 # Where to save the results
-outdir: /home/sfotiadis/code/modulus/examples/generative/corrdiff/training_output/${hydra:job.name}/
+outdir: ./training_output/${hydra:job.name}/
 
 ## Main options
 defaults:

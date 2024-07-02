@@ -9,7 +9,7 @@ hydra:
     chdir: True
     name: condiffusion_v2_stathi_p_mean_negative_1_point_2
   run:
-    dir: ./inference/${checkpoint}_${dataset_name}_s_max_${S_max}/
+    dir: ./training_output/${hydra:job.name}/inference/${checkpoint}_${dataset_name}_s_max_${S_max}/
 
 image_outdir: .
   # Where to save the output images
