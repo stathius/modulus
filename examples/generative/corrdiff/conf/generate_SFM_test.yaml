@@ -16,10 +16,8 @@ image_outdir: .
 
 ## Main options
 res_ckpt_filename: /home/sfotiadis/code/modulus/examples/generative/corrdiff/training-state-diffusion-050466.mdlus
-# res_ckpt_filename /lustre/fsw/portfolios/nvr/projects/nvr_earth2_e2/corrdiff/training_output/${hydra:job.name}/checkpoints/training-state-diffusion-${checkpoint}.mdlus 
   # Checkpoint filename for the generative model  
 reg_ckpt_filename: /home/sfotiadis/code/modulus/examples/generative/corrdiff/training-state-regression-053327.mdlus
-# reg_ckpt_filename: /lustre/fsw/portfolios/nvr/projects/nvr_earth2_e2/corrdiff/regression/training-state-regression-053327.mdlus
   # Checkpoint filename for the mean predictor model
 seeds: "0-63"
   # Random seeds used for generation
