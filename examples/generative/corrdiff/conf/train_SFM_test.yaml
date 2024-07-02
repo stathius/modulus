@@ -19,10 +19,10 @@ hydra:
     chdir: True
     name: SFM_withoutLowCond
   run:
-    dir: outputs
+    dir: ./training_output/${hydra:job.name}
 
 # Where to save the results
-outdir: ./training_output/${hydra:job.name}/
+outdir: .
 
 ## Main options
 defaults:
